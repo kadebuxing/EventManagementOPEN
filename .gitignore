@@ -1,0 +1,24 @@
+# Compiled output
+out/
+*.class
+
+# Runtime data written by the application
+data/
+reports/
+
+# IDE metadata
+.aicoding-chat-workspace
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Leftover Python bytecode from the earlier prototype
+__pycache__/
+*.pyc

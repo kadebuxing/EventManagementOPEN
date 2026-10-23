@@ -1,0 +1,31 @@
+name: Java CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Compile main sources
+        run: |
+          mkdir -p out/main out/test
+          find src/main/java -name '*.java' > main-sources.txt
+          javac --release 17 -encoding UTF-8 -Xlint:all -d out/main @main-sources.txt
+
+      - name: Compile test sources
+        run: |
+          find src/test/java -name '*.java' > test-sources.txt
+          javac --release 17 -encoding UTF-8 -Xlint:all -cp out/main -d out/test @test-sources.txt
+
+      - name: Run tests
+        run: java -cp "out/main:out/test" com.eventmanagement.tests.TestRunner
