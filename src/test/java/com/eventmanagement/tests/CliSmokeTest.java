@@ -20,6 +20,7 @@ public final class CliSmokeTest extends ServiceFixture {
         String output = runConsole(String.join("\n",
                 "8", "E-001", "R-0001", "y", "0"));
         Assert.assertContains(output, "Registration R-0001 cancelled", "Confirmation message");
+        Assert.assertContains(output, "Remaining places: 2.", "Remaining places shown");
         Assert.assertEquals(0, event.registeredCount(), "The registration was cancelled");
     }
 
@@ -59,6 +60,7 @@ public final class CliSmokeTest extends ServiceFixture {
         Assert.assertContains(output, "Registration confirmed. Unique reference: R-0001",
                 "Reference shown");
         Assert.assertContains(output, "1/2", "Live count shown");
+        Assert.assertContains(output, "Remaining places: 1.", "Remaining places shown");
     }
 
     @Test
