@@ -18,15 +18,17 @@ Jira is the source of truth for sprint status:
 | Sprint | Issues | Status |
 | --- | --- | --- |
 | Sprint 1 (active) | OPEN-1, OPEN-2, OPEN-4, OPEN-8, OPEN-10 | Done |
-| Sprint 2 (future) | OPEN-3, OPEN-5, OPEN-6, OPEN-7, OPEN-9, OPEN-11, OPEN-12 | To Do |
+| Sprint 2 (future) | OPEN-3, OPEN-5, OPEN-6, OPEN-9 | Done (completed early) |
+| Sprint 2 (future) | OPEN-7, OPEN-11, OPEN-12 | To Do |
 
-Four Sprint 2 stories are code-complete ahead of the sprint because they sit on
-the same records as Sprint 1: OPEN-3 (registration) feeds the capacity rule in
-OPEN-4 and the cancelled-event rule in OPEN-8, OPEN-6 (cancel registration)
-frees a place again, OPEN-5 (attendance) works from the registration list, and
-OPEN-9 (persistence) saves every Sprint 1 change. OPEN-7 (reports) has an early
-implementation. All five remain **To Do** in Jira until Sprint 2 starts.
-OPEN-11 (JUnit regression suite) and OPEN-12 (file locking) are not
+OPEN-3, OPEN-5, OPEN-6 and OPEN-9 are marked **Done** ahead of the sprint
+because they sit on the same records as Sprint 1: OPEN-3 (registration) feeds
+the capacity rule in OPEN-4 and the cancelled-event rule in OPEN-8, OPEN-6
+(cancel registration) frees a place again, OPEN-5 (attendance) works from the
+registration list, and OPEN-9 (persistence) saves every Sprint 1 change. They
+stay in the future Sprint 2 rather than being moved, so the active Sprint 1
+board is unchanged. OPEN-7 (reports) has an early implementation but is still
+To Do; OPEN-11 (JUnit regression suite) and OPEN-12 (file locking) are not
 implemented.
 
 ## Requirements
@@ -95,7 +97,7 @@ repeated, so a rejected field never consumes an identifier.
 | OPEN-8 | Cancel Event | `EventService.cancelEvent`, `undoCancelEvent` |
 | OPEN-10 | Edit Event | `EventService.updateEvent` |
 
-### Sprint 2 — Code-complete early (strong Sprint 1 coupling)
+### Sprint 2 — Done (completed early, strong Sprint 1 coupling)
 
 | Issue | User story | Implementation | Acceptance coverage |
 | --- | --- | --- | --- |
@@ -104,13 +106,13 @@ repeated, so a rejected field never consumes an identifier.
 | OPEN-6 | Cancel Registration | `EventService.cancelRegistration` | confirmation, freed place, cancelled entry hidden from attendance |
 | OPEN-9 | Data Persistence | `JsonStorage`, `Json`, `Storage` | restart round trips, attendance flags, counters, atomic writes |
 
-### Sprint 2 — Early code
+### Sprint 2 — To Do (early code)
 
 | Issue | User story | Implementation |
 | --- | --- | --- |
 | OPEN-7 | Generate Reports | `EventService.generateReport`, `ReportExporter` |
 
-### Sprint 2 — Not implemented
+### Sprint 2 — To Do (not implemented)
 
 | Issue | User story | Planned work |
 | --- | --- | --- |
