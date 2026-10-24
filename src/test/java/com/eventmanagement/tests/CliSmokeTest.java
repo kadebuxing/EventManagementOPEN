@@ -6,9 +6,11 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 
 import com.eventmanagement.cli.ConsoleApp;
 import com.eventmanagement.model.Event;
+import com.eventmanagement.service.EventService;
 
 /** Console level smoke tests: the menu drives the same service the tests use. */
 public final class CliSmokeTest extends ServiceFixture {
@@ -97,11 +99,79 @@ public final class CliSmokeTest extends ServiceFixture {
         Assert.assertContains(output, "Event E-404 not found", "Missing events are reported");
     }
 
+    @Test
+    public void emptyListShowsNoEvents() {
+        String output = runConsole(String.join("\n", "2", "0"));
+        Assert.assertContains(output, "No events", "Empty state is shown");
+    }
+
+    @Test
+    public void pastDateIsRetriedBeforeSaving() {
+        String output = runConsole(String.join("\n",
+                "1", "Java Meetup", "01/01/2020", "31/12/2026", "09:30", "Hall A", "50", "0"));
+        Assert.assertContains(output, "Event not saved", "The past date is rejected");
+        Assert.assertContains(output, "Event created successfully.", "The retry succeeds");
+        Assert.assertEquals(1, service.listEvents(null).active().size(), "One event exists");
+    }
+
+    @Test
+    public void filterWithNoMatchReportsNoResults() {
+        createSampleEvent();
+        String output = runConsole(String.join("\n", "2", "zzz", "0"));
+        Assert.assertContains(output, "No matching events found", "No results are shown");
+    }
+
+    @Test
+    public void capacityBelowRegisteredCountIsRejectedThroughTheMenu() {
+        Event event = createSampleEvent();
+        service.registerAttendee(event.getEventId(), "Alice");
+        service.registerAttendee(event.getEventId(), "Bob");
+        String output = runConsole(String.join("\n", "6", "E-001", "1", "0"));
+        Assert.assertContains(output, "Capacity not updated", "The update is rejected");
+        Assert.assertEquals(2, event.getCapacity(), "Capacity is unchanged");
+        Assert.assertEquals(2, event.registeredCount(), "Registrations are unchanged");
+    }
+
+    @Test
+    public void fullEventBlocksFurtherRegistrationsThroughTheMenu() {
+        Event event = createSampleEvent();
+        service.registerAttendee(event.getEventId(), "Alice");
+        service.registerAttendee(event.getEventId(), "Bob");
+        String output = runConsole(String.join("\n", "7", "E-001", "0"));
+        Assert.assertContains(output, "Event capacity has been reached", "Full event blocked");
+        Assert.assertEquals(2, event.registeredCount(), "Count stays at capacity");
+    }
+
+    @Test
+    public void passedEventCannotBeEditedThroughTheMenu() {
+        createSampleEvent();
+        EventService future = serviceOn(LocalDate.of(2027, 1, 1));
+        String output = runConsole(future, String.join("\n", "3", "E-001", "0"));
+        Assert.assertContains(
+                output,
+                "This event has passed and can no longer be edited",
+                "Passed events are blocked");
+    }
+
+    @Test
+    public void editKeepsCurrentValuesWhenBlank() {
+        createSampleEvent();
+        String output = runConsole(String.join("\n",
+                "3", "E-001", "", "", "", "", "", "0"));
+        Assert.assertContains(output, "Event updated successfully.", "The update succeeds");
+        Assert.assertEquals("Java Meetup", service.getEvent("E-001").getName(),
+                "The name is unchanged");
+    }
+
     private String runConsole(String input) {
+        return runConsole(service, input);
+    }
+
+    private String runConsole(EventService target, String input) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream out = new PrintStream(buffer, true, StandardCharsets.UTF_8);
         ConsoleApp app = new ConsoleApp(
-                service,
+                target,
                 new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)),
                 out);
         int exitCode = app.run();

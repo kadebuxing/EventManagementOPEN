@@ -7,9 +7,26 @@ test runner all ship with the project.
 
 - Java 17+ (developed and verified with JDK 25 using `--release 17`)
 - JSON persistence with atomic file replacement
-- 85 tests, all passing, run by a small zero-dependency test runner
+- 92 tests, all passing, run by a small zero-dependency test runner
 
 Repository: <https://github.com/kadebuxing/EventManagementOPEN>
+
+## Jira status
+
+Jira is the source of truth for sprint status:
+
+| Sprint | Issues | Status |
+| --- | --- | --- |
+| Sprint 1 (active) | OPEN-1, OPEN-2, OPEN-4, OPEN-8, OPEN-10 | Done |
+| Sprint 2 (future) | OPEN-3, OPEN-5, OPEN-6, OPEN-7, OPEN-9, OPEN-11, OPEN-12 | To Do |
+
+The code contains working implementations of OPEN-3, OPEN-5, OPEN-6, OPEN-7
+and OPEN-9. OPEN-3, OPEN-6 and OPEN-9 are needed to exercise Sprint 1's
+capacity and cancellation criteria: OPEN-4 AC4 needs registration, and OPEN-8
+AC4 needs a cancelled event to reject registrations. OPEN-5 (attendance) and
+OPEN-7 (reports) are early implementations of Sprint 2 stories. All five
+remain **To Do** in Jira until Sprint 2 starts. OPEN-11 (JUnit regression
+suite) and OPEN-12 (file locking) are not implemented.
 
 ## Requirements
 
@@ -23,7 +40,7 @@ Repository: <https://github.com/kadebuxing/EventManagementOPEN>
 ```powershell
 .\scripts\compile.ps1   # compile into out/main
 .\scripts\run.ps1       # compile and start the console
-.\scripts\test.ps1      # compile everything and run all 85 tests
+.\scripts\test.ps1      # compile everything and run all 92 tests
 ```
 
 Use a different data file:
@@ -67,18 +84,32 @@ repeated, so a rejected field never consumes an identifier.
 
 ## Jira traceability
 
+### Sprint 1 — Done
+
 | Issue | User story | Implementation |
 | --- | --- | --- |
 | OPEN-1 | Create Event | `EventService.createEvent`, `Validators` |
 | OPEN-2 | List Events | `EventService.listEvents`, `EventListing`, `Formats.eventTable` |
-| OPEN-3 | Register Attendee | `EventService.registerAttendee`, `Registration` |
 | OPEN-4 | Manage Event Capacity | `EventService.setCapacity`, `Event.isFull` |
+| OPEN-8 | Cancel Event | `EventService.cancelEvent`, `undoCancelEvent` |
+| OPEN-10 | Edit Event | `EventService.updateEvent` |
+
+### Sprint 2 — To Do (early code present)
+
+| Issue | User story | Implementation |
+| --- | --- | --- |
+| OPEN-3 | Register Attendee | `EventService.registerAttendee`, `Registration` |
 | OPEN-5 | Track Attendance | `EventService.markAttendance`, `Event.attendedCount` |
 | OPEN-6 | Cancel Registration | `EventService.cancelRegistration` (confirmation enforced) |
 | OPEN-7 | Generate Reports | `EventService.generateReport`, `ReportExporter` |
-| OPEN-8 | Cancel Event | `EventService.cancelEvent`, `undoCancelEvent` |
 | OPEN-9 | Data Persistence | `JsonStorage`, `Json`, `Storage` |
-| OPEN-10 | Edit Event | `EventService.updateEvent` |
+
+### Sprint 2 — To Do (not implemented)
+
+| Issue | User story | Planned work |
+| --- | --- | --- |
+| OPEN-11 | Add JUnit regression suite | Migrate the business-rule tests to JUnit 5 and run them in CI |
+| OPEN-12 | Add file locking for concurrent access | Add file locking or optimistic concurrency with a clear failure message |
 
 ## Business rules
 
@@ -161,7 +192,7 @@ scripts/                    compile.ps1, run.ps1, test.ps1
 and prints one line per test plus a summary:
 
 ```
-Tests run: 85, passed: 85, failed: 0
+Tests run: 92, passed: 92, failed: 0
 OK
 ```
 
@@ -180,6 +211,9 @@ Coverage highlights:
 - persistence: restart round trips, counter recovery, corrupted and malformed
   JSON rejected without touching the file, no temporary files left behind
 - console: scripted end-to-end runs of create, list, register, cancel and export
+- Sprint 1 console acceptance: empty list message, past-date retry, filtered
+  no-match, capacity rejection below registrations, passed-event edit block,
+  blank edit keeps the current values
 
 ## Continuous integration
 
