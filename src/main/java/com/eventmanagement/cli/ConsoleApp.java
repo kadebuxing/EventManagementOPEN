@@ -456,6 +456,7 @@ public final class ConsoleApp {
                 "Registered attendees: %d/%d%n",
                 event.registeredCount(),
                 event.getCapacity());
+        out.println("Remaining places: " + event.availablePlaces() + ".");
         if (event.isFull()) {
             out.println("Event is now full; further registrations are blocked.");
         }
@@ -498,6 +499,7 @@ public final class ConsoleApp {
                 registration.getReference(),
                 event.registeredCount(),
                 event.getCapacity());
+        out.println("Remaining places: " + event.availablePlaces() + ".");
     }
 
     private void trackAttendance() {
