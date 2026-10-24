@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import com.eventmanagement.model.Event;
+import com.eventmanagement.model.Registration;
 import com.eventmanagement.service.EventListing;
 import com.eventmanagement.service.EventService;
 import com.eventmanagement.storage.JsonStorage;
@@ -61,6 +62,20 @@ public final class PersistenceTest extends ServiceFixture {
         EventService restarted = serviceOn(TODAY);
         Event second = restarted.createEvent("Team Sync", "01/11/2026", "10:00", "Room B", "5");
         Assert.assertEquals("E-002", second.getEventId(), "Event numbering continues");
+    }
+
+    @Test
+    public void attendanceSurvivesARestart() {
+        Event event = service.createEvent("Today", "20/05/2026", "09:00", "Hall A", "10");
+        Registration alice = service.registerAttendee(event.getEventId(), "Alice");
+        service.markAttendance(event.getEventId(), alice.getReference(), true);
+
+        Event reloaded = serviceOn(TODAY).getEvent(event.getEventId());
+
+        Assert.assertEquals(1, reloaded.attendedCount(), "Attendance is stored");
+        Assert.assertTrue(
+                reloaded.activeRegistrations().get(0).isAttended(),
+                "The attendance flag is restored");
     }
 
     @Test

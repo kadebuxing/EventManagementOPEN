@@ -75,6 +75,98 @@ public final class CliSmokeTest extends ServiceFixture {
     }
 
     @Test
+    public void eventListShowsLiveRegistrationAndAttendanceCounts() {
+        Event event = service.createEvent("Today", "20/05/2026", "09:00", "Hall A", "10");
+        service.registerAttendee(event.getEventId(), "Alice");
+        service.registerAttendee(event.getEventId(), "Bob");
+        service.registerAttendee(event.getEventId(), "Carol");
+        service.markAttendance(event.getEventId(), "R-0001", true);
+        service.markAttendance(event.getEventId(), "R-0002", true);
+
+        String output = runConsole(String.join("\n", "2", "", "0"));
+
+        Assert.assertContains(output, "Registered", "Registered column");
+        Assert.assertContains(output, "Attended", "Attended column");
+        Assert.assertTrue(
+                output.lines().anyMatch(line -> line.startsWith("E-001")
+                        && line.contains("3/10") && line.contains(" 2 ")),
+                "The row shows live registered and attended counts");
+    }
+
+    @Test
+    public void eventSummaryListsRegisteredAndAttendedPeople() {
+        Event event = service.createEvent("Today", "20/05/2026", "09:00", "Hall A", "10");
+        service.registerAttendee(event.getEventId(), "Alice");
+        service.registerAttendee(event.getEventId(), "Bob");
+        service.markAttendance(event.getEventId(), "R-0001", true);
+
+        String output = runConsole(String.join("\n", "10", "E-001", "0"));
+
+        Assert.assertContains(output, "Registrations:", "Registration list");
+        Assert.assertContains(output, "R-0001  Alice  [Attended]", "Attended attendee");
+        Assert.assertContains(output, "R-0002  Bob  [Registered]", "Registered attendee");
+        Assert.assertContains(output, "Attended  : 1 of 2", "Live attended count");
+        Assert.assertContains(output, "Remaining : 8", "Live remaining places");
+    }
+
+    @Test
+    public void cancelledRegistrationIsRemovedFromTheAttendanceList() {
+        Event event = createSampleEvent();
+        service.registerAttendee(event.getEventId(), "Alice");
+        service.registerAttendee(event.getEventId(), "Bob");
+        service.cancelRegistration(event.getEventId(), "R-0001", true);
+
+        String output = runConsole(String.join("\n", "10", "E-001", "0"));
+
+        Assert.assertNotContains(output, "R-0001", "Cancelled reference is hidden");
+        Assert.assertNotContains(output, "Alice", "Cancelled attendee is hidden");
+        Assert.assertContains(output, "R-0002", "Active attendee remains");
+        Assert.assertContains(output, "Attended  : 0 of 1", "Only active registrations count");
+    }
+
+    @Test
+    public void cancellingRegistrationCanBeAborted() {
+        Event event = createSampleEvent();
+        service.registerAttendee(event.getEventId(), "Alice");
+
+        String output = runConsole(String.join("\n", "8", "E-001", "R-0001", "n", "0"));
+
+        Assert.assertContains(output, "Cancellation aborted", "The abort is reported");
+        Assert.assertEquals(1, event.registeredCount(), "The registration is unchanged");
+    }
+
+    @Test
+    public void attendanceIsTrackedThroughTheMenu() {
+        Event event = service.createEvent("Today", "20/05/2026", "09:00", "Hall A", "10");
+        service.registerAttendee(event.getEventId(), "Alice");
+
+        String output = runConsole(String.join("\n", "9", "E-001", "R-0001", "a", "0"));
+
+        Assert.assertContains(output, "marked as attended", "Attendance confirmation");
+        Assert.assertContains(
+                output,
+                "Registered: 1, Attended: 1 (live counts).",
+                "Live counts are shown");
+        Assert.assertTrue(
+                event.activeRegistrations().get(0).isAttended(),
+                "The registration is marked");
+    }
+
+    @Test
+    public void onlyRegisteredAttendeesCanBeMarkedThroughTheMenu() {
+        Event event = service.createEvent("Today", "20/05/2026", "09:00", "Hall A", "10");
+        service.registerAttendee(event.getEventId(), "Alice");
+
+        String output = runConsole(String.join("\n", "9", "E-001", "R-9999", "0"));
+
+        Assert.assertContains(
+                output,
+                "Only registered attendees can be marked as attended",
+                "Unknown references are rejected");
+        Assert.assertEquals(0, event.attendedCount(), "Nothing was marked");
+    }
+
+    @Test
     public void reportingThroughTheMenuWritesAFile() throws Exception {
         Event event = createSampleEvent();
         service.registerAttendee(event.getEventId(), "Alice");
