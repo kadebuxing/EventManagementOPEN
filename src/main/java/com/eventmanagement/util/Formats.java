@@ -41,8 +41,8 @@ public final class Formats {
         }
         String header = String.format(
                 Locale.ROOT,
-                "%-6s %-24s %-10s %-5s %-18s %-10s %s",
-                "ID", "Name", "Date", "Time", "Venue", "Registered", "Status");
+                "%-6s %-24s %-10s %-5s %-18s %-10s %-8s %s",
+                "ID", "Name", "Date", "Time", "Venue", "Registered", "Attended", "Status");
         StringBuilder builder = new StringBuilder(header);
         builder.append(System.lineSeparator());
         builder.append("-".repeat(header.length()));
@@ -51,13 +51,14 @@ public final class Formats {
             builder.append(System.lineSeparator());
             builder.append(String.format(
                     Locale.ROOT,
-                    "%-6s %-24s %-10s %-5s %-18s %-10s %s",
+                    "%-6s %-24s %-10s %-5s %-18s %-10s %-8s %s",
                     event.getEventId(),
                     truncate(event.getName(), 24),
                     date(event.getDate()),
                     time(event.getTime()),
                     truncate(event.getVenue(), 18),
                     registered,
+                    event.attendedCount(),
                     event.getStatus().displayName()));
         }
         return builder.toString();

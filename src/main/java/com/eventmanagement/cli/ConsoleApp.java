@@ -192,7 +192,12 @@ public final class ConsoleApp {
                 "  Registered: %d/%d%n",
                 event.registeredCount(),
                 event.getCapacity());
-        out.printf(Locale.ROOT, "  Attended  : %d%n", event.attendedCount());
+        out.printf(
+                Locale.ROOT,
+                "  Attended  : %d of %d%n",
+                event.attendedCount(),
+                event.registeredCount());
+        out.printf(Locale.ROOT, "  Remaining : %d%n", event.availablePlaces());
     }
 
     private void printRegistrations(Event event) {

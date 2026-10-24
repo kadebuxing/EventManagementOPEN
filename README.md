@@ -7,7 +7,7 @@ test runner all ship with the project.
 
 - Java 17+ (developed and verified with JDK 25 using `--release 17`)
 - JSON persistence with atomic file replacement
-- 92 tests, all passing, run by a small zero-dependency test runner
+- 99 tests, all passing, run by a small zero-dependency test runner
 
 Repository: <https://github.com/kadebuxing/EventManagementOPEN>
 
@@ -20,13 +20,14 @@ Jira is the source of truth for sprint status:
 | Sprint 1 (active) | OPEN-1, OPEN-2, OPEN-4, OPEN-8, OPEN-10 | Done |
 | Sprint 2 (future) | OPEN-3, OPEN-5, OPEN-6, OPEN-7, OPEN-9, OPEN-11, OPEN-12 | To Do |
 
-The code contains working implementations of OPEN-3, OPEN-5, OPEN-6, OPEN-7
-and OPEN-9. OPEN-3, OPEN-6 and OPEN-9 are needed to exercise Sprint 1's
-capacity and cancellation criteria: OPEN-4 AC4 needs registration, and OPEN-8
-AC4 needs a cancelled event to reject registrations. OPEN-5 (attendance) and
-OPEN-7 (reports) are early implementations of Sprint 2 stories. All five
-remain **To Do** in Jira until Sprint 2 starts. OPEN-11 (JUnit regression
-suite) and OPEN-12 (file locking) are not implemented.
+Four Sprint 2 stories are code-complete ahead of the sprint because they sit on
+the same records as Sprint 1: OPEN-3 (registration) feeds the capacity rule in
+OPEN-4 and the cancelled-event rule in OPEN-8, OPEN-6 (cancel registration)
+frees a place again, OPEN-5 (attendance) works from the registration list, and
+OPEN-9 (persistence) saves every Sprint 1 change. OPEN-7 (reports) has an early
+implementation. All five remain **To Do** in Jira until Sprint 2 starts.
+OPEN-11 (JUnit regression suite) and OPEN-12 (file locking) are not
+implemented.
 
 ## Requirements
 
@@ -40,7 +41,7 @@ suite) and OPEN-12 (file locking) are not implemented.
 ```powershell
 .\scripts\compile.ps1   # compile into out/main
 .\scripts\run.ps1       # compile and start the console
-.\scripts\test.ps1      # compile everything and run all 92 tests
+.\scripts\test.ps1      # compile everything and run all 99 tests
 ```
 
 Use a different data file:
@@ -94,17 +95,22 @@ repeated, so a rejected field never consumes an identifier.
 | OPEN-8 | Cancel Event | `EventService.cancelEvent`, `undoCancelEvent` |
 | OPEN-10 | Edit Event | `EventService.updateEvent` |
 
-### Sprint 2 — To Do (early code present)
+### Sprint 2 — Code-complete early (strong Sprint 1 coupling)
+
+| Issue | User story | Implementation | Acceptance coverage |
+| --- | --- | --- | --- |
+| OPEN-3 | Register Attendee | `EventService.registerAttendee`, `Registration` | unique reference, capacity block, cancelled-event block, live counts |
+| OPEN-5 | Track Attendance | `EventService.markAttendance`, `Event.attendedCount` | day-of-event marking, registered vs attended list, unknown references rejected |
+| OPEN-6 | Cancel Registration | `EventService.cancelRegistration` | confirmation, freed place, cancelled entry hidden from attendance |
+| OPEN-9 | Data Persistence | `JsonStorage`, `Json`, `Storage` | restart round trips, attendance flags, counters, atomic writes |
+
+### Sprint 2 — Early code
 
 | Issue | User story | Implementation |
 | --- | --- | --- |
-| OPEN-3 | Register Attendee | `EventService.registerAttendee`, `Registration` |
-| OPEN-5 | Track Attendance | `EventService.markAttendance`, `Event.attendedCount` |
-| OPEN-6 | Cancel Registration | `EventService.cancelRegistration` (confirmation enforced) |
 | OPEN-7 | Generate Reports | `EventService.generateReport`, `ReportExporter` |
-| OPEN-9 | Data Persistence | `JsonStorage`, `Json`, `Storage` |
 
-### Sprint 2 — To Do (not implemented)
+### Sprint 2 — Not implemented
 
 | Issue | User story | Planned work |
 | --- | --- | --- |
@@ -192,7 +198,7 @@ scripts/                    compile.ps1, run.ps1, test.ps1
 and prints one line per test plus a summary:
 
 ```
-Tests run: 92, passed: 92, failed: 0
+Tests run: 99, passed: 99, failed: 0
 OK
 ```
 
@@ -214,6 +220,9 @@ Coverage highlights:
 - Sprint 1 console acceptance: empty list message, past-date retry, filtered
   no-match, capacity rejection below registrations, passed-event edit block,
   blank edit keeps the current values
+- Sprint 2 early acceptance: registered/attended counts in the event list,
+  attendee list with attendance state, cancellation confirmation and abort,
+  cancelled entries hidden from attendance, attendance surviving a restart
 
 ## Continuous integration
 
